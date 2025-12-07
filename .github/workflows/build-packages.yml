@@ -1,0 +1,53 @@
+name: Build RPM and DEB Packages
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  build-packages:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y rpm dpkg-dev alien
+
+      - name: Build RPM Package
+        run: |
+          mkdir -p rpm/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
+          cp calculate-files.bash rpm/SOURCES/
+          rpmbuild --define "_topdir $(pwd)/rpm" -ba rpm/SPECS/calculate-files.spec
+
+      - name: Build DEB Package
+        run: |
+          mkdir -p deb/{DEBIAN,usr/local/bin}
+          cp calculate-files.bash deb/usr/local/bin/calculate-files
+          chmod 755 deb/usr/local/bin/calculate-files
+          cat <<EOF > deb/DEBIAN/control
+          Package: calculate-files
+          Version: 1.0
+          Section: utils
+          Priority: optional
+          Architecture: amd64
+          Depends: bash
+          Maintainer: Your Name <your.email@example.com>
+          Description: Script to count files in /etc
+           This package includes a Bash script that calculates the number of files
+           in the /etc directory, excluding directories and symbolic links.
+          EOF
+          dpkg-deb --build deb
+
+      - name: Upload packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: built-packages
+          path: |
+            rpm/RPMS/x86_64/*.rpm
+            deb.deb
