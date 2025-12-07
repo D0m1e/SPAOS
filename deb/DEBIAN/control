@@ -1,0 +1,10 @@
+Package: calculate-files
+Version: 1.0
+Section: utils
+Priority: optional
+Architecture: amd64
+Depends: bash
+Maintainer: Dmytro dimabbr365@gmail.com
+Description: Script to count files in /etc
+ This package includes a Bash script that calculates the number of files
+ in the /etc directory, excluding directories and symbolic links.
